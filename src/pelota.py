@@ -16,9 +16,6 @@ def tracking_loop(tello):
     frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
     results = yolo.track(frame)
 
-    lr = 0
-    fb = 0
-
     if results:
         for result in results:
             if result.boxes:
@@ -30,18 +27,17 @@ def tracking_loop(tello):
                         x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
 
                         if x_center < int(FRAME_WIDTH / 2) - DEADZONE:
-                            lr = -SPEED
+                            tello.move_left(SPEED)
                         elif x_center > int(FRAME_WIDTH / 2) + DEADZONE:
-                            lr = SPEED
+                            tello.move_right(SPEED)
 
                         if y_center < int(FRAME_HEIGHT / 2) - DEADZONE:
-                            fb = SPEED
+                            tello.move_back(SPEED)
                         elif y_center > int(FRAME_HEIGHT / 2) + DEADZONE:
-                            fb = -SPEED
+                            tello.move_forward(SPEED)
 
                         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-    tello.send_rc_control(lr, fb, 0, 0)
     return frame
 
 
