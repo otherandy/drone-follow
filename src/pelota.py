@@ -2,10 +2,11 @@ import cv2
 from djitellopy import Tello
 from ultralytics import YOLO
 
-FRAME_WIDTH = 640
-FRAME_HEIGHT = 480
-SPEED = 20
-DEADZONE = 100
+FRAME_WIDTH: int = 640
+FRAME_HEIGHT: int = 480
+
+DIST: int = 25
+DEADZONE: int = 100
 
 yolo = YOLO("best.pt")
 
@@ -26,15 +27,17 @@ def tracking_loop(tello):
                         y_center = int(y1 + y2) / 2
                         x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
 
+                        tello.send_rc_control(0, 0, 0, 0)
+
                         if x_center < int(FRAME_WIDTH / 2) - DEADZONE:
-                            tello.move_left(SPEED)
+                            tello.move_left(DIST)
                         elif x_center > int(FRAME_WIDTH / 2) + DEADZONE:
-                            tello.move_right(SPEED)
+                            tello.move_right(DIST)
 
                         if y_center < int(FRAME_HEIGHT / 2) - DEADZONE:
-                            tello.move_back(SPEED)
+                            tello.move_back(DIST)
                         elif y_center > int(FRAME_HEIGHT / 2) + DEADZONE:
-                            tello.move_forward(SPEED)
+                            tello.move_forward(DIST)
 
                         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
@@ -53,13 +56,17 @@ def __main__():
         while True:
             frame = tracking_loop(tello)
             cv2.imshow("drone", frame)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
+            keydown = cv2.waitKey(1) & 0xFF
+            if keydown == ord("q"):
+                tello.land()
+                break
+            if keydown == ord("e"):
+                tello.emergency()
                 break
 
     finally:
-        tello.send_rc_control(0, 0, 0, 0)
-        tello.land()
         tello.streamoff()
+        tello.end()
         cv2.destroyAllWindows()
 
 
