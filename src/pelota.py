@@ -11,10 +11,7 @@ DEADZONE: int = 60
 yolo = YOLO("best.pt")
 
 
-def tracking_loop(tello):
-    frame = tello.get_frame_read().frame
-    frame = cv2.resize(frame, (FRAME_WIDTH, FRAME_HEIGHT))
-    frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+def tracking_loop(tello, frame):
     results = yolo.track(frame)
 
     if results:
@@ -27,7 +24,7 @@ def tracking_loop(tello):
                     x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 1)
 
-                    if box.conf[0] > 0.5:
+                    if box.conf[0] > 0.6:
                         lr, fb = 0, 0
 
                         x_error = x_center - FRAME_WIDTH / 2
@@ -57,11 +54,14 @@ def __main__():
 
     tello.streamon()
     tello.takeoff()
+    tello.move_down(30)
 
     try:
         while True:
-            frame = tracking_loop(tello)
-            cv2.imshow("drone", frame)
+            frame = tello.get_frame_read().frame
+            frame = cv2.resize(frame, (FRAME_WIDTH, FRAME_HEIGHT))
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
             keydown = cv2.waitKey(1) & 0xFF
             if keydown == ord("q"):
                 tello.land()
@@ -69,6 +69,19 @@ def __main__():
             if keydown == ord("e"):
                 tello.emergency()
                 break
+
+            if keydown == ord("j"):
+                tello.send_rc_control(-100, 0, 0, 0)
+            elif keydown == ord("l"):
+                tello.send_rc_control(100, 0, 0, 0)
+            elif keydown == ord("i"):
+                tello.send_rc_control(0, 100, 0, 0)
+            elif keydown == ord("k"):
+                tello.send_rc_control(0, -100, 0, 0)
+            else:
+                frame = tracking_loop(tello, frame)
+
+            cv2.imshow("drone", frame)
 
     finally:
         tello.streamoff()
