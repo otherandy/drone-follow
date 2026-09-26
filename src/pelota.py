@@ -5,8 +5,8 @@ from ultralytics import YOLO
 FRAME_WIDTH: int = 640
 FRAME_HEIGHT: int = 480
 
-SPEED: int = 20
-DEADZONE: int = 100
+SPEED: int = 25
+DEADZONE: int = 60
 
 yolo = YOLO("best.pt")
 
@@ -29,15 +29,16 @@ def tracking_loop(tello):
 
                         lr, fb = 0, 0
 
-                        if x_center < int(FRAME_WIDTH / 2) - DEADZONE:
-                            lr = -SPEED
-                        elif x_center > int(FRAME_WIDTH / 2) + DEADZONE:
-                            lr = SPEED
+                        x_error = x_center - FRAME_WIDTH / 2
+                        y_error = y_center - FRAME_HEIGHT / 2
 
-                        if y_center < int(FRAME_HEIGHT / 2) - DEADZONE:
-                            fb = -SPEED
-                        elif y_center > int(FRAME_HEIGHT / 2) + DEADZONE:
-                            fb = SPEED
+                        if abs(x_error) > DEADZONE:
+                            lr = int(x_error / (FRAME_WIDTH / 2 - DEADZONE) * SPEED)
+                        if abs(y_error) > DEADZONE:
+                            fb = int(y_error / (FRAME_HEIGHT / 2 - DEADZONE) * SPEED)
+
+                        lr = max(-SPEED, min(SPEED, lr))
+                        fb = max(-SPEED, min(SPEED, fb))
 
                         tello.send_rc_control(lr, fb, 0, 0)
                         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
