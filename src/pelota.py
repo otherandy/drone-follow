@@ -21,12 +21,13 @@ def tracking_loop(tello):
         for result in results:
             if result.boxes:
                 for box in result.boxes:
-                    if box.conf[0] > 0.6:
-                        x1, y1, x2, y2 = box.xyxy[0]
-                        x_center = int(x1 + x2) / 2
-                        y_center = int(y1 + y2) / 2
-                        x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+                    x1, y1, x2, y2 = box.xyxy[0]
+                    x_center = int(x1 + x2) / 2
+                    y_center = int(y1 + y2) / 2
+                    x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 1)
 
+                    if box.conf[0] > 0.5:
                         lr, fb = 0, 0
 
                         x_error = x_center - FRAME_WIDTH / 2
