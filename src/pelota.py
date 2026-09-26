@@ -50,6 +50,7 @@ def tracking_loop(tello, frame):
 def __main__():
     tello = Tello()
     tello.connect()
+
     print(f"Battery: {tello.get_battery()}%")
 
     tello.streamon()
@@ -80,6 +81,7 @@ def __main__():
             else:
                 frame = tracking_loop(tello, frame)
 
+            print(f"Battery: {tello.get_battery()}%")
             cv2.imshow("drone", frame)
 
     finally:
