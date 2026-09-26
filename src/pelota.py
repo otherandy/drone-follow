@@ -24,7 +24,7 @@ def tracking_loop(tello, frame):
                     x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 1)
 
-                    if box.conf[0] > 0.55:
+                    if box.conf[0] > 0.6:
                         lr, fb = 0, 0
 
                         x_error = x_center - FRAME_WIDTH / 2
@@ -70,14 +70,22 @@ def __main__():
                 tello.emergency()
                 break
 
+            lr, fb = 0, 0
             if keydown == ord("j"):
-                tello.send_rc_control(-100, 0, 0, 0)
-            elif keydown == ord("l"):
-                tello.send_rc_control(100, 0, 0, 0)
-            elif keydown == ord("i"):
-                tello.send_rc_control(0, 100, 0, 0)
-            elif keydown == ord("k"):
-                tello.send_rc_control(0, -100, 0, 0)
+                lr = -100
+            if keydown == ord("l"):
+                lr = 100
+            if keydown == ord("i"):
+                fb = 100
+            if keydown == ord("k"):
+                fb = -100
+            if keydown == ord("y"):
+                tello.send_rc_control(0, 0, 50, 0)
+            if keydown == ord("h"):
+                tello.send_rc_control(0, 0, -50, 0)
+
+            if lr != 0 or fb != 0:
+                tello.send_rc_control(lr, fb, 0, 0)
             else:
                 frame = tracking_loop(tello, frame)
 
